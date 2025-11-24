@@ -1,0 +1,20 @@
+@media (min-width: 768px) {
+    .nav {
+        display: flex;
+    }
+
+    .menu,
+    .hamburger {
+        display: none;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --clr-primary: hsl(var(--theme-h), var(--theme-s), 95%);
+        --clr-secondary: hsl(calc(var(--theme-h) + 10), var(--theme-s), 90%);
+        --clr-accent: hsl(calc(var(--theme-h) - 10), 100%, var(--theme-l));
+        --clr-bg: hsl(var(--theme-h), var(--theme-s), 75%);
+        --clr-text: hsl(var(--theme-h), var(--theme-s), 30%);
+    }
+}
