@@ -1,10 +1,10 @@
 import { Router } from "./router/vanillaRouter.js";
 import { initLandingPage } from "./router/init/landingPage.js";
 
-const basename = '/SPA-Landing-Page';
+const basename = '/';
 const mainRouter = new Router({
     id: "main",
-    log: true,
+    log: false,
     routes: {
         '/': {
             redirectTo: '/landing-page'

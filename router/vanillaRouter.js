@@ -1,5 +1,3 @@
-import { appState } from "../modules/appState.js";
-
 function escapeRegex(str) {
     return str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
@@ -10,8 +8,7 @@ export class Router {
             id = "router",
             routes = {},
             useHistory = true,
-            useHash = false,        // <── NEW
-            relative = false,
+            useHash = false,        
             log = false,
             basename = "/",
             hideClass = "hidden",
@@ -27,7 +24,6 @@ export class Router {
         this.useHash = useHash;     // <── NEW
         this.log = log;
         this.currentElement = null;
-        this.relative = relative;
         this.hideClass = hideClass;
         this.basename = basename;
         this.fallBackRoute = fallBackRoute;
@@ -44,8 +40,6 @@ export class Router {
                     navigate(link.dataset.link);
                 });
             });
-
-        appState.routers[id] = this;
 
         // Handle back button
         if (this.useHistory && !this.useHash) {
