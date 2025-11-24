@@ -1,5 +1,7 @@
 import { Router } from "./router/vanillaRouter.js";
 import { initLandingPage } from "./router/init/landingPage.js";
+
+const basename = '/SPA-Landing-Page';
 const mainRouter = new Router({
     id: "main",
     log: true,
@@ -14,8 +16,7 @@ const mainRouter = new Router({
             pageId: 'getitnow'
         },
         'landing-page': {
-            pageId: 'landing-page',
-            initFn: initLandingPage
+            pageId: 'landing-page'
         },
         'features': {
             pageId: 'features-page'
@@ -28,8 +29,13 @@ const mainRouter = new Router({
         },
         'pricing': {
             pageId: 'pricing-page'
+        },
+        'not-found':{
+            pageId: 'not-found'
         }
     },
+    basename: basename,
+    fallBackRoute: 'not-found',
     setUpNavigation(navigateTo) {
         document.addEventListener('click', (e) => {
             e.preventDefault()
@@ -40,8 +46,10 @@ const mainRouter = new Router({
             }
         })
 
-    }
+    },
+    onLoadedInitFn: initLandingPage
 })
 
 mainRouter.init()
+initLandingPage()
 

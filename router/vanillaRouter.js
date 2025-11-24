@@ -11,11 +11,14 @@ export class Router {
             routes = {},
             useHistory = true,
             useHash = false,        // <── NEW
-            mountPrefix = "",
+            relative = false,
             log = false,
+            basename = "/",
             hideClass = "hidden",
+            fallBackRoute,
             getPageElement = (id) => document.getElementById(id),
-            setUpNavigation
+            setUpNavigation,
+            onLoadedInitFn
         } = {}
     ) {
         this.id = id;
@@ -24,9 +27,11 @@ export class Router {
         this.useHash = useHash;     // <── NEW
         this.log = log;
         this.currentElement = null;
-        this.mountPrefix = mountPrefix;
+        this.relative = relative;
         this.hideClass = hideClass;
-
+        this.basename = basename;
+        this.fallBackRoute = fallBackRoute;
+        this.onLoadedInitFn = onLoadedInitFn;
         this.getPageElement = getPageElement;
         this.setUpNavigation =
             setUpNavigation ||
@@ -104,6 +109,7 @@ export class Router {
     }
 
     matchRoute(path) {
+        path = path.startsWith(this.basename) ? path.slice(this.basename.length) : path
         const cleanPath = this.normalizePath(path);
 
         for (const routePattern in this.routes) {
@@ -136,6 +142,10 @@ export class Router {
      * Core Rendering
      * --------------------------- */
 
+    redirect(route){
+        history.replaceState({}, '', route)
+        this.show(route)
+    }
     show(path) {
         // If using hash, ignore normal paths
         if (this.useHash && !path.startsWith("/")) {
@@ -143,16 +153,18 @@ export class Router {
         }
 
         const match = this.matchRoute(path);
-        if (!match) {
+        const fallBackRoute = this.fallBackRoute;
+        if (!match?.pageId && !match?.redirectTo) {
             if (this.log) console.warn(`[${this.id}] No route found for`, path);
+            if(fallBackRoute) this.redirect(fallBackRoute)
             return;
         }
 
         const { redirectTo,  pageId, hydrateFn, initFn, params, routePattern } = match;
+        const onLoadedInitFn = this.onLoadedInitFn;
 
         if(redirectTo && this.useHistory){
-            history.replaceState({}, '', redirectTo)
-            this.show(redirectTo)
+            this.redirect(redirectTo)
             return
         }
         const pageElement = this.getPageElement(pageId);
@@ -178,6 +190,11 @@ export class Router {
             this.routes[routePattern].initFn = null;
         }
 
+        if (typeof onLoadedInitFn === "function") {
+            onLoadedInitFn({ params, page: pageElement, route: path });
+            this.onLoadedInitFn = null;
+        }
+
         if (this.log) {
             console.log(`[${this.id}] Route change:`, {
                 params,
@@ -192,15 +209,16 @@ export class Router {
      * --------------------------- */
 
     navigate(route) {
-        const normalized = "/" + this.normalizePath(route);
-
-        if (this.useHash) {
+        let normalized = "/" + this.normalizePath(route);
+        normalized = normalized.startsWith(this.basename) ? normalized : this.basename+normalized
+        const isSameRoute = normalized === location.pathname;
+        if (this.useHash && !isSameRoute) {
             this.setHashRoute(normalized);
             this.show(normalized);
             return;
         }
 
-        if (this.useHistory && normalized !== location.pathname) {
+        if (this.useHistory && !isSameRoute) {
             history.pushState({ route: normalized }, "", normalized);
         }
 
